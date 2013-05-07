@@ -1,0 +1,9 @@
+name = Product
+description =Product Info  
+core = 7.x
+package = Store
+
+files[] = product.module
+files[] = product.entity.inc
+
+version = 7.x

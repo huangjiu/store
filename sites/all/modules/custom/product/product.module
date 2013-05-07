@@ -1,0 +1,54 @@
+<?php 
+
+include_once drupal_get_path('module' , 'product') . '/product.entity.inc';
+
+/**
+ * Implments hook_menu
+ */
+function product_menu(){
+	$items['product'] = array(
+		'title' => '产品中心',
+		'page callback' => 'product_page',
+		'menu-name' => 'main-menu',
+		'type' => MENU_SUGGESTED_ITEM,
+		'access callback' => TRUE,
+	);
+
+	// $items['project/%'] = array(
+ //    'title' => '项目信息',
+ //    'page callback' => 'project_page',
+ //    'menu-name' => 'main-menu',
+ //    'type' => MENU_SUGGESTED_ITEM,
+ //    'access callback' => 'user_is_logged_in',
+ //  );
+  return $items;
+}
+
+function product_page(){
+	$repo = new ProductTermRepository();
+	$list = $repo-> get_terms();
+
+	$list2 = $repo-> get_top_terms();
+
+	debug($list2);
+
+	// $pro_repo = new ProductVocabularyRepository();
+ // 	$cat =	$pro_repo-> get_vocabulary_by_machine_name('prodcut_category');
+
+ 	// debug($cat);
+// var_dump($list);
+
+// debug($list);
+
+	$renders = array();
+	if( $list ) {
+		foreach ($list as $project ) {
+			$renders[] = array(
+				'#markup' => $project -> title ,
+				'#prefix' => '<li><a href="#">' ,
+				'#suffix' => '</a></li>' ,
+			);
+		}	
+	}
+	return common_module_template_file('product' , 'list' , array('projects' => $renders));
+}

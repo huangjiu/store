@@ -1,0 +1,227 @@
+<?php
+
+/**
+ * Implements hook_menu
+ */
+function common_menu() {
+  return array();
+}
+
+/**
+ * Implements hook_menu_alter(). 隐藏不必须的menu项
+ */
+function common_menu_alter(&$items) {
+  $urls = array(
+    'node/%node' ,
+    'user',
+    'user/login',
+    'user/password',
+    'user/reset/%/%/%',
+    'user/%user',
+    'user/%user/edit',
+    // 'user/%user/view',
+  );
+
+  foreach ($urls as $path) {
+    $items[$path]['access callback'] = 'common_is_administrator';
+    $items[$path]['access arguments'] = array();
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function common_theme($existing, $type, $theme, $path) {
+  // 定义template_including_template_file的主题hoook
+  $themes['common_template_file'] = array(
+    'variables' => array(
+      'key' => NULL,
+      'file' => NULL,
+      'params' => array(),
+    ),
+    'template' => 'template',
+  );
+  return $themes;
+}
+
+/**
+ * 加载template_including_template_file主题hook的前预处理。
+ */
+function template_preprocess_common_template_file(&$varibales) {
+  // 定义加载模板文件的hook hook_preprocess_load_template_[key]
+  // hyphens (-) are converted to underscores (_)
+  $key = str_replace(array("/", "\\", "\0", '-'), array('', '', '', '_'), $varibales['key']);
+  $hook = 'pre_load_' . $key;
+  
+  foreach ($varibales['params'] as $key => $value) {
+    $varibales[$key] = $value;
+  }
+  
+  foreach (module_implements($hook) as $module) {
+    $function = $module . '_' . $hook;
+    $function($varibales);
+  }
+}
+
+/**
+ * 判断用户是否为系统管理员.
+ */
+function common_is_administrator($user = false) {
+  if(!$user) {
+    global $user;
+  } 
+  return in_array('administrator', array_values($user -> roles));
+}
+
+/**
+ * 分页组件 渲染
+ */
+function pagination_render($url , $params , $current_page , $num_per_page , $max_page_num){
+  if(!$max_page_num  || $max_page_num == 1) {
+    return array();
+  }
+  if($current_page <= 0 ) {
+    $current_page = 1;
+  }
+
+  $start = 1;
+  $step = $num_per_page;
+  $pagination = array();
+
+  if( $max_page_num <= $num_per_page ) {
+    $step = $max_page_num + 1;
+  } else if( $current_page > 1 ) {
+    if( $max_page_num  > $num_per_page + $current_page) {
+      $start = $current_page;
+      $step = $current_page + $num_per_page;
+    } else {
+      $start= $max_page_num - $num_per_page;
+      $step = $max_page_num;
+    }
+  } else {
+    $step = $max_page_num > $num_per_page + $current_page ? $current_page + $num_per_page : $max_page_num;
+  }
+  $start = $start <= 0 ?  1 : $start;
+
+  if( $current_page > 1) {
+    $new_params = $params;
+    $new_params['page'] = $current_page -2;
+    $pagination['prev'] =  url( $url , array('query' => $new_params));
+  } 
+  if( $current_page < $max_page_num) {
+    $new_params = $params;
+    $new_params['page'] = $current_page;
+    $pagination['next'] =  url( $url , array('query' => $new_params));
+  } 
+
+  for ($i = $start ; $i < $step ; $i++) { 
+    $new_params = $params;
+    $new_params['page'] = $i - 1;
+    $pagination['pages'][] = array(
+      'url' => url( $url , array('query' => $new_params)) ,
+      'title' => $i ,
+      'disabled' => $i == $current_page ,
+    );
+  }
+  return common_module_template_file('todo' , 'pagination' , array('pagination' => $pagination));
+}
+
+/**
+ * 分页组件
+ */
+function pagination($url , $params = array() , $element = 0 , $num_per_page = 10){
+  global $pager_total;
+  $current_page = pager_find_page($element);
+  $max_page = isset($pager_total[$element]) ? $pager_total[$element] : 0;
+  if( $max_page <= 1) {
+    return array();
+  }
+  return pagination_render($url , $params , $current_page + 1 , $num_per_page , $max_page);
+}
+
+/**
+ * 加载模板文件。  
+ *
+ * @param $key 文件加载的键值
+ * @param $file 模板文件的路径
+ * @param $args 参数 添加2个特殊的属性 css/js 加载资源文件和javascript 脚本
+ */
+function common_template_file($key, $file, $args = array()) {
+  if(!is_array($args)) {
+    $args = array();
+  }
+  return array(
+    '#theme' => 'common_template_file',
+    '#key' => $key,
+    '#file' => $file,
+    '#params' => $args,
+  );
+}
+
+/**
+ * 加载指定模块下的模板文件。模板文件名在$file_dir目录下，文件名由模块名与文件键值组合构成。  
+ *
+ * @param $module 模块名称
+ * @param $key 模块文件的键值
+ * @param $delimiter 模板文件名称的分割符
+ * @param $file_dir 模板文件在模块中的目录
+ * @param $args 参数 添加2个特殊的属性 css/js 加载资源文件和javascript 脚本
+ */
+function common_module_template_file($module, $key, $args = array(), $file_dir = "templates",  $delimiter = '-') {
+  $file_name = $module . $delimiter . $key;
+  $file_path =  drupal_get_path('module', $module). '/' . $file_dir . '/' . $file_name  .'.tpl.php';
+  return common_template_file($file_name, $file_path, $args);
+}
+
+function common_form_render($settings , &$form , &$form_state){
+  if( $settings ) {
+    foreach ($settings as $name => $setting) {
+      $setting['name'] = $name;
+      $message = commmon_form_get_error($name);
+      $field = CommonField::create($setting);
+
+      var_dump($message);
+
+      if( $message ) {
+        $render = $field->render('field-' . $message['level']);
+      } else {
+        $render = $field->render();
+      }
+      $form[] = $render;
+    }
+  }
+
+  $actions_length = 0;
+  foreach ($form as $key => $element ) {
+    if( isset($element['#type'])  && in_array($element['#type'] ,  array('submit'))) {
+      unset($form[$key]);
+      $buttons[] = $element;
+      $actions_length++;
+    }
+  } 
+
+  if( $actions_length > 0) {
+    $buttons['#prefix'] = '<div class="clearfix"></div><div class="form-actions">' ;
+    $buttons['#suffix'] = '</div>' ;
+    $form['actions'] = $buttons;
+  }
+  $form['#attributes']['class'][] = 'form form-single-line';
+}
+
+
+function commmon_form_set_error($name , $message = '' , $level = 'warning'){
+  $_SESSION['drupal_error_messages'][$name] = array(
+    'message' => $message ,
+    'level' => $level ,
+  );
+  form_set_error($name , $message);
+}
+
+function commmon_form_get_error($name){
+  if( isset( $_SESSION['drupal_error_messages'][$name] ) ) {
+    $message = $_SESSION['drupal_error_messages'][$name];
+    unset($_SESSION['drupal_error_messages'][$name]) ;
+    return $message;
+  }
+  return false;
+}

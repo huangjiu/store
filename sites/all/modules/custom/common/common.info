@@ -1,0 +1,10 @@
+name = Common API 
+description = Common API 
+core = 7.x
+package = Store
+version = 7.x
+
+files[] = common.pages.inc
+files[] = common.entity.inc
+files[] = common.sql.entity.inc
+files[] = common.field.inc
