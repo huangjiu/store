@@ -26,4 +26,13 @@ class ProductTermRepository {
 	function get_top_terms() {
 		return $this->repo-> list_top_terms( $this->category);
 	}
+
+	function get_children($tid){
+		$terms = taxonomy_get_children($tid);
+		return  $terms ?  $terms : array();
+	}
+
+	function get_parents($tid){
+		return taxonomy_get_parents($tid);
+	}
 }
