@@ -41,7 +41,38 @@ function common_theme($existing, $type, $theme, $path) {
     ),
     'template' => 'template',
   );
+
+  //主题化图像链接
+  $themes['image_link'] = array('variables' => array(
+    'title' => '',
+    'href' => '#',
+    'image' => NULL,
+    'attributes' => array(),
+  ));
   return $themes;
+}
+
+
+/**
+ * 图片链接主题的预处理方法
+ * 显示图片链接主题函数，变量中包括：
+ * -href：链接地址
+ * -image：链接的图片
+ * -title: 链接的标题
+ * -attributes:链接的html属性
+ */
+function common_image_link($variables) {
+  $attributes = $variables['attributes'];
+  $attributes['title'] = $variables['title'];
+  
+  $item_link = array(
+    '#type' => 'link',
+    '#href' => $variables['href'],
+    '#title' => drupal_render($variables['image']),
+    '#options' => array('html' => TRUE, ),
+    '#attributes' => $attributes
+  );
+  return drupal_render($item_link);
 }
 
 /**

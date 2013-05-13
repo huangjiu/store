@@ -3,7 +3,7 @@
 
 			<div class="main">
 				<div class="bar">
-					<?php  print render($top); ?>
+					<?php  print $top; ?>
 				</div>
 				<ul class="<?php print $style ? $style['value'] : ''; ?>">
 					<?php  foreach ($terms as $term) : ?>

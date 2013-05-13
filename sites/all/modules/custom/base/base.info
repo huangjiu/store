@@ -1,0 +1,14 @@
+name = Base
+description = Base
+core = 7.x
+package = Features
+dependencies[] = admin_menu
+dependencies[] = block
+dependencies[] = field_ui
+dependencies[] = file
+dependencies[] = image
+dependencies[] = list
+dependencies[] = menu
+dependencies[] = number
+dependencies[] = taxonomy
+features[features_api][] = api:1

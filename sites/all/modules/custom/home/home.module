@@ -1,0 +1,48 @@
+<?php 
+
+include_once drupal_get_path('module' , 'news') . '/news.entity.inc';
+
+/**
+ * Implments hook_menu
+ */
+function home_menu(){
+	$items['home'] = array(
+		'title' => 'Home',
+		'page callback' => 'home_page',
+		'menu-name' => 'main-menu',
+		'type' => MENU_SUGGESTED_ITEM,
+		'access callback' => TRUE,
+	);
+
+	// $items['product/term/%'] = array(
+ //    'title' => '系列产品信息',
+ //    'page callback' => 'product_term_page',
+ //    'page arguments'=> array(2) ,
+ //    'menu-name' => 'main-menu',
+ //    'type' => MENU_SUGGESTED_ITEM,
+ //   	'access callback' => TRUE,
+ //  );
+
+ //  $items['product/%'] = array(
+ //    'title' => '产品信息',
+ //    'page callback' => 'product_info_page',
+ //     'page arguments'=> array(1) ,
+ //    'menu-name' => 'main-menu',
+ //    'type' => MENU_SUGGESTED_ITEM,
+ //   	'access callback' => TRUE,
+ //  );
+  return $items;
+}
+
+function home_page(){
+
+	$repo = new NewsRepository();
+	$news = $repo->list_entities(10);
+
+	debug($news);
+
+
+
+	$params['public_resources'] = url(drupal_get_path('theme', 'store')) . '/res';
+	return common_module_template_file('home' , 'info' , $params);
+}

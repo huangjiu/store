@@ -130,7 +130,7 @@ class NodeRepository extends  EntityRepository {
 	 * @return A fully-populated node object, or FALSE if the node is not found.
 	 */
 	protected function get_entity($id) {
-		return node_load($id);
+		return new Node($id);
 	}
 
 	protected function __construct($bundle) {

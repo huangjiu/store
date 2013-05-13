@@ -1,0 +1,9 @@
+name = News
+description = News Info  
+core = 7.x
+package = Store
+
+files[] = news.module
+files[] = news.entity.inc
+
+version = 7.x

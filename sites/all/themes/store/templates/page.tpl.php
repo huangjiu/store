@@ -6,8 +6,8 @@
       </a>
     </div>
     <div class="nav"> 
-      <a href="#news"><img src="<?php print $public_resources; ?>/index_14.gif"></a>
-      <a href="#product"><img src="<?php print $public_resources; ?>/index_16.gif"></a>
+      <a href="<?php print url('product'); ?>">产品专区</a>
+      <a href="<?php print url('news'); ?>">新闻中心</a>
     </div>
   </div>
   <div class="clear"></div>

@@ -1,0 +1,9 @@
+name = Home
+description =Home Info  
+core = 7.x
+package = Store
+
+files[] = home.module
+files[] = home.entity.inc
+
+version = 7.x

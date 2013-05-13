@@ -56,12 +56,11 @@ function product_page(){
 				$pro_term->url = url('product/term/' . $prod_term-> tid);
 				$terms[] = $pro_term;
 			}
+
+			$banner = $entity-> get_field('field_term_banner');
 			$params = array(
 				'terms' => $terms ,
-				'top' => array( 
-					'#theme' => 'image' ,
-					'#path'  =>  $nav_image['uri'] ,
-				) ,
+				'top' => $banner['value'],
 				'style' => $entity-> get_field('field_term_style') ,
 			);
 
@@ -72,11 +71,18 @@ function product_page(){
 	return $product_renders;
 }
 
-
-function product_get_nav_element($tid){
+function product_get_nav_element($tid , $parent = TRUE){
 		$repo = new ProductTermRepository();
-		$entity = new Term( $tid );
-		$children = $repo-> get_children($tid);
+
+		$pid = $tid;
+		if( !$parent ) {
+			$parents = $repo-> get_parents($tid);
+			$parents = array_merge($parents);
+			$pid = $parents[0]->tid;
+		}
+
+		$entity = new Term( $pid );
+		$children = $repo-> get_children($pid);
 		$left = $entity-> get_field('field_term_left_image');
 
 		$terms = array();
@@ -99,22 +105,58 @@ function product_get_nav_element($tid){
 
 function product_term_page($tid){
 	$entity = new Term( $tid );
-	$repo = new ProductTermRepository();
-	$parents = $repo-> get_parents($tid);
-	$parents = array_merge($parents);
 	$image = $entity-> get_field('field_term_images');
+	$pro_repo = new ProductRepository();
+	$entities = $pro_repo->get_entity_by_field( 'field_pro_category' , 'tid' , $tid);
+	$product_renders = array();
+	if( $entities ) {
+		foreach ($entities as $product ) {
+			$render = array();
+			$pro_image  = $product-> get_field('field_pro_image');
+			$render[] = array(
+				'#theme' => 'image' ,
+				'#path'  =>  $pro_image['uri'] ,
+			);
+			$render[] = array(
+				'#markup' =>  l($product-> title  , 'product/'. $product->nid) ,
+			);
+			$product_renders[] = $render;
+		}
+	}
 	$params = array( 
-		'nav' => product_get_nav_element($parents[0]->tid) ,
+		'nav' => product_get_nav_element($tid , false) ,
 		'image' => array(
 			'#theme' => 'image' ,
 			'#path'  =>  $image['uri'] ,
 		),
 		'title' =>  $entity->name ,
+		'products' => $product_renders ,
+		'breadcrumb' => product_breadcrumb( $tid) ,
 	);
-
 	return common_module_template_file('product' , 'list' , $params);
 }
 
 function product_info_page($nid){
-	return array();
+	$product = new Node($nid);
+	$cat = $product-> get_field('field_pro_category');
+	$content =$product-> get_field('field_pro_content' , 'value') ; 
+	$params = array(
+		'nav' => product_get_nav_element( $cat['tid'] , false ) ,
+		'content' => $content['safe_value'],
+		'breadcrumb' => product_breadcrumb( $cat['tid'] ) ,
+	);
+	return common_module_template_file('product' , 'detail' , $params);
+}
+
+function product_breadcrumb($tid){
+	$repo = new ProductTermRepository();
+	$parents = $repo-> get_parents($tid);
+	$breadcrumb = array();
+	$breadcrumb['产品专区'] = "product";
+	foreach ($parents as $key => $parent) {
+		$breadcrumb[$parent-> name] = "product";
+	}
+	$term = new Term($tid);
+	$breadcrumb[$term-> name] = 'product/term/' . $tid;
+	return common_module_template_file('product' , 'breadcrumb' , array('breadcrumb' => $breadcrumb));
 }

@@ -1,0 +1,84 @@
+<?php 
+
+include_once drupal_get_path('module' , 'news') . '/news.entity.inc';
+
+/**
+ * Implments hook_menu
+ */
+function news_menu(){
+	$items['news'] = array(
+		'title' => '新闻中心',
+		'page callback' => 'news_page',
+		'menu-name' => 'main-menu',
+		'type' => MENU_SUGGESTED_ITEM,
+		'access callback' => TRUE,
+	);
+
+	$items['news/%/cat'] = array(
+    'title' => '新闻分类信息',
+    'page callback' => 'news_page',
+    'page arguments'=> array(1) ,
+    'menu-name' => 'main-menu',
+    'type' => MENU_SUGGESTED_ITEM,
+   	'access callback' => TRUE,
+  );
+  $items['news/%'] = array(
+    'title' => '新闻信息',
+    'page callback' => 'news_info_page',
+    'page arguments'=> array(1) ,
+    'menu-name' => 'main-menu',
+    'type' => MENU_SUGGESTED_ITEM,
+   	'access callback' => TRUE,
+  );
+  return $items;
+}
+
+
+function news_page($tid = 0){
+ 	$repo = new NewsRepository();
+  $categories =	$repo->get_categories();
+  if(!$tid) {
+  	$tid = $categories[0]->tid;
+  }
+  $news = $repo->get_entity_by_field('field_news_category' , 'tid'  , $tid);
+  $news  = $news ? $news : array();
+  foreach ($news as $index => $info) {
+  	$content = $info->get_field('body');
+  	$image = $info->get_field('field_news_image');
+  	$info->summary = array(
+  		'#markup' => $content['summary'] ,
+  	);
+  	$info->image = array(
+  		'#theme' => 'image' ,
+			'#path'  =>  $image['uri'] ,
+  	);
+  	$news[$index] = $info;
+  }
+	return common_module_template_file('news' , 'info' , array(
+		'news' => $news ,
+		'nav' => news_nav_element($tid),
+	));
+}
+
+function news_info_page($nid) {
+	$news  = new Node($nid);
+	$cat = $news->get_field('field_news_category');
+  $content = $news->get_field('body');
+  $news-> content = $content['value'];
+	return common_module_template_file('news' , 'detail' , array(
+		'news' => $news ,
+		'nav' => news_nav_element($cat['tid']),
+	));
+}
+
+function news_nav_element($tid){
+	$repo = new NewsRepository();
+  $categories =	$repo->get_categories();
+  if(!$tid) {
+  	$tid = $categories[0]->tid;
+  }
+  return common_module_template_file('news' , 'nav' , array(
+		'categories' => $categories ,
+		'tid' => $tid ,
+	));
+}
