@@ -37,11 +37,7 @@ function home_menu(){
 function home_page(){
 
 	$repo = new NewsRepository();
-	$news = $repo->list_entities(10);
-
-	debug($news);
-
-
+	$news = $repo->list_entites(10);
 
 	$params['public_resources'] = url(drupal_get_path('theme', 'store')) . '/res';
 	return common_module_template_file('home' , 'info' , $params);
