@@ -1,6 +1,7 @@
 name = Store
 core = 7.x
 package = Features
+php = 5.2.4
 dependencies[] = common
 dependencies[] = features
 dependencies[] = image
@@ -12,7 +13,6 @@ features[features_api][] = api:1
 features[field][] = node-news-body
 features[field][] = node-news-field_news_category
 features[field][] = node-news-field_news_image
-features[field][] = node-news-field_news_summary
 features[field][] = node-product-field_pro_category
 features[field][] = node-product-field_pro_content
 features[field][] = node-product-field_pro_desc
