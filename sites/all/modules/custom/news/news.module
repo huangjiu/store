@@ -37,7 +37,7 @@ function news_menu(){
 function news_page($tid = 0){
  	$repo = new NewsRepository();
   $categories =	$repo->get_categories();
-  if(!$tid) {
+  if(!$tid && $categories) {
   	$tid = $categories[0]->tid;
   }
   $news = $repo->get_entity_by_field('field_news_category' , 'tid'  , $tid);
@@ -74,7 +74,7 @@ function news_info_page($nid) {
 function news_nav_element($tid){
 	$repo = new NewsRepository();
   $categories =	$repo->get_categories();
-  if(!$tid) {
+  if(!$tid && $categories) {
   	$tid = $categories[0]->tid;
   }
   return common_module_template_file('news' , 'nav' , array(

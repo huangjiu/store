@@ -19,7 +19,7 @@ function common_menu_alter(&$items) {
     'user/reset/%/%/%',
     'user/%user',
     'user/%user/edit',
-    // 'user/%user/view',
+    'user/%user/view',
   );
 
   foreach ($urls as $path) {

@@ -170,13 +170,19 @@ a {
 }
 .left .header {
 	margin-bottom: 10px;
+	font-size: 20px;
 }
 .right .header{
  	margin-bottom: 10px;
+ 	font-size: 20px;
 }
 
 .content-block .header{
 	margin-top : 16px;
+}
+.content-block .main a img{
+	width :295px;
+	height:185px;
 }
 .content-block .main{
 	padding-left: 2px;

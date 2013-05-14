@@ -6,13 +6,11 @@
 			<div class="header"> 新闻中心</div>
 			<div class="content-block">
 				<div class="main">
-					<a href="#"><img border="0" src="./res/e5be47b5355e7c4ae3450947b96f32a4.jpg" width="295" height="185"></a>
+					<a href="<?php print $top_news_url; ?>"><?php print render($top_news_image); ?></a>
 					<ul>
-						<li><a href="#">热烈祝贺香港佰怡家整体家居进驻山西</a><span>2013-04-29</span></li>
-						<li><a href="#">热烈祝贺香港佰怡家整体家居进驻山西</a><span>2013-04-29</span></li>
-						<li><a href="#">热烈祝贺香港佰怡家整体家居进驻山西</a><span>2013-04-29</span></li>
-						<li><a href="#">热烈祝贺香港佰怡家整体家居进驻山西</a><span>2013-04-29</span></li>
-						<li><a href="#">热烈祝贺香港佰怡家整体家居进驻山西</a><span>2013-04-29</span></li>
+					<?php foreach ($news as $info ) { ?>
+						<li><a href="<?php print url('news/' . $info->nid); ?>"><?php print $info->title; ?></a><span>2013-04-29</span></li>
+					<?php  } ?>
 					</ul>
 				</div>
 			</div>
@@ -21,7 +19,6 @@
 
 		<div class="right">
 			<div class="header">产品</div>
-
 
 			<div class="kit">
 		  	<div class="tu3"><a href="#"><img src="./res/index_118.gif" width="232" height="209" border="0"></a></div>

@@ -14,23 +14,14 @@ function home_menu(){
 		'access callback' => TRUE,
 	);
 
-	// $items['product/term/%'] = array(
- //    'title' => '系列产品信息',
- //    'page callback' => 'product_term_page',
- //    'page arguments'=> array(2) ,
- //    'menu-name' => 'main-menu',
- //    'type' => MENU_SUGGESTED_ITEM,
- //   	'access callback' => TRUE,
- //  );
-
- //  $items['product/%'] = array(
- //    'title' => '产品信息',
- //    'page callback' => 'product_info_page',
- //     'page arguments'=> array(1) ,
- //    'menu-name' => 'main-menu',
- //    'type' => MENU_SUGGESTED_ITEM,
- //   	'access callback' => TRUE,
- //  );
+	$items['login'] = array(
+		'title' => 'Home',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('home_login_form') ,
+		'menu-name' => 'main-menu',
+		'type' => MENU_SUGGESTED_ITEM,
+		'access callback' => 'user_is_anonymous',
+	);
   return $items;
 }
 
@@ -39,6 +30,83 @@ function home_page(){
 	$repo = new NewsRepository();
 	$news = $repo->list_entites(10);
 
+	$top_news = $news ? $news[0] : false;
+
+	if( $top_news ) {
+		$image = $top_news->get_field('field_news_image');
+		$params['top_news_image'] = array(
+			'#theme' => 'image' ,
+			'#path'  =>  $image['uri'] ,
+		); 
+		$params['top_news_url'] = url('news/' . $top_news-> nid);
+	}
+
 	$params['public_resources'] = url(drupal_get_path('theme', 'store')) . '/res';
+	$params['news'] = $news ? $news : array();
 	return common_module_template_file('home' , 'info' , $params);
+}
+
+function home_login_form($form, &$form_state){
+
+	$form['header'] = array(
+		'#prefix' => '<h2 class="form-signin-heading">' ,
+		'#suffix' => '</h2>' ,
+		'#markup' => t('登录') ,
+	);
+
+  $form['name'] = array(
+    '#type' => 'textfield' ,
+    '#required' => TRUE ,
+    '#attributes' => array(
+    	'class' => array('input-block-level') ,
+    	'placeholder' => t('用户名或邮箱')
+    )
+  );
+  $form['pass'] = array(
+    '#type' => 'password' ,
+    '#attributes' => array(
+    	'class' => array('input-block-level') ,
+    	'placeholder' => t('密码')
+    )
+  );
+	
+	$form['forget-password'] = array(
+		'#markup' => l('忘记密码?', 'todo/user/forget-password'),
+    '#prefix' => '<div class="form-item">',
+    '#suffix' => '</div>',
+	);
+	
+  $form['submit'] = array(
+    '#type' => 'submit' ,
+    '#value' => '用户登录' ,
+    '#attributes' => array(
+    	'class' => array('btn btn-large btn-primary') 
+    ) ,
+  );
+
+  $form['#attributes']['class'] = array('form-signin');
+  // $form['#validate'] = array('user_login_authenticate_validate');
+	return $form;
+}
+
+function home_login_form_validate($form, &$form_state){
+  $name = $form_state['values']['name'] ;
+  $pass = $form_state['values']['pass'] ;
+
+  $user = user_load_by_name($name);
+  if(!user_authenticate($user->name, $pass)) {
+   form_set_error('name' , t('用户名或者密码错误!'));
+   form_set_error('pass' , t('用户名或者密码错误!'));
+  } else {
+    $form_state['user'] = $user;
+  }
+}
+
+function home_login_form_submit($form , &$form_state){
+  $name = $form_state['values']['name'] ;
+  $pass = $form_state['values']['pass'] ;
+  $user = $form_state['user'];
+  $form_state['uid'] = $user->uid;      
+  user_login_submit(array(), $form_state);
+  $form_state['redirect'] = '';
 }
