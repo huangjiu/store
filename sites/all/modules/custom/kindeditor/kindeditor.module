@@ -1,0 +1,157 @@
+<?php 
+
+/**
+ * Implementation hook_menu().
+ */
+function kindeditor_menu(){
+	$items['kindeditor/upload'] = array(
+		'title' => 'KindEditor 文件上传',
+		'page callback' => 'kindeditor_upload_page' ,
+		'access callback' => true ,
+		'type' => MENU_CALLBACK,
+	);
+	return $items;
+}
+
+/**
+ * 文件上传回调.
+ */
+function kindeditor_upload_page(){
+
+	$files_info = $_FILES['imgFile'];
+	unset($_FILES['imgFile']);
+
+	$_FILES['files'] = array(
+		'name' =>  array('kindeditor' => time() . '_' . transliteration_clean_filename($files_info['name'])) ,
+    'type' => array('kindeditor' => $files_info['type']) ,
+    'tmp_name' => array('kindeditor' => $files_info['tmp_name']) ,
+    'error' => array('kindeditor' => $files_info['error']) ,
+    'size' => array('kindeditor' => $files_info['size']) ,
+	);
+
+	$kindeditor_dest_dir = 'public://kindeditor/' . $_GET['dir'];
+	$dir = drupal_realpath($kindeditor_dest_dir);
+
+	if (!file_exists($dir . '/')) {
+		drupal_mkdir($dir . '/');
+	}
+
+	$validators = array(
+		'file_validate_is_image' => array(),
+	);
+
+	if ($file = file_save_upload('kindeditor' , $validators , $kindeditor_dest_dir)) {
+    file_save($file);
+    file_usage_add($file , 'kindeditor' , 'kindeditor' , $file->fid);
+    kindeditor_message(array('error' => 0 , 'url' => file_create_url($file->uri)));
+  } else {
+  	kindeditor_error_message(t('文件上传失败。'));
+  }
+}
+
+/**
+ * Implementation of hook_element_info_alter().
+ */
+function kindeditor_element_info_alter(&$types) {
+  $types['text_format']['#pre_render'][] = 'kindeditor_pre_render_text_format';
+}
+
+
+/**
+ *	文本框编辑器  渲染.
+ */
+function kindeditor_pre_render_text_format($element){
+	if (!isset($element['#format'])) {
+    return $element;
+  }
+  
+  if( isset($element['value'])) {
+  	$settings = kindeditor_settings();
+  	$format = $element['value']['#format'];
+
+  	$kindeditor_settings = isset($settings[$format]) ? $settings[$format] : $settings['default'];
+  	$kindeditor_settings['id'] = '#'. $element['value']['#id'];
+
+  	drupal_add_js( array('kindeditor' => $kindeditor_settings ) , 'setting');
+  	drupal_add_css(drupal_get_path('module' , 'kindeditor') .'/kindeditor/themes/default/default.css');
+		drupal_add_js( drupal_get_path('module' , 'kindeditor') .'/kindeditor/kindeditor.js');
+		drupal_add_js( drupal_get_path('module' , 'kindeditor') . '/kindeditor/lang/zh_CN.js');
+		drupal_add_js( drupal_get_path('module' , 'kindeditor') . '/kindeditor/drupal.kindeditor.js');
+  }
+
+	return $element;
+}
+
+/**
+ *	文本框编辑器 设置信息.
+ */
+function kindeditor_settings(){
+	$settings = array();
+	$settings['default'] = array(
+		'items' => array(
+			'source', 'preview','|','fontname', 'fontsize', '|', 'template', 'forecolor', 'hilitecolor', 'bold', 'italic', 'underline','removeformat', 
+			'|', 'justifyleft', 'justifycenter', 'justifyright', 'insertorderedlist', 'insertunorderedlist', 
+			'|', 'baidumap','emoticons', 'image', 'link'
+		),
+		'uploadJson' => url('kindeditor/upload') ,
+		'allowFileManager' =>  false,
+		'resizeMode' => 0,
+		'height' => 300 ,
+		'resizeType' => 0,
+		'minHeigh' => 300,
+		'fillDescAfterUploadImage' => true,
+		'imageTabIndex' => 1,
+		'pasteType' => 1,
+		//'urlType' => 'relative',
+		'noDisableItems' => array(
+      'source',
+      'preview',
+      'fullscreen'
+    )
+	);
+	$settings['full_html'] = array(
+		'items' => array(
+			'source',  'preview', '|', 'undo', 'redo', '|', 'template', 'cut', 'copy', 'paste',
+			'plainpaste', 'wordpaste', '|', 'justifyleft', 'justifycenter', 'justifyright',
+			'justifyfull', 'insertorderedlist', 'insertunorderedlist', 'indent', 'outdent', 'subscript',
+			'superscript', 'clearhtml', 'quickformat', 'selectall', '|', 'fullscreen', '/',
+			'formatblock', 'fontname', 'fontsize', '|', 'forecolor', 'hilitecolor', 'bold',
+			'italic', 'underline', 'strikethrough', 'lineheight', 'removeformat', '|', 'baidumap', 'image', 'multiimage',
+			'table', 'hr', 'emoticons', 'anchor', 'link', 'unlink'
+		),
+		'height' => 430,
+		'minHeigh' => 430,
+		'uploadJson' => url('kindeditor/upload') ,
+		'allowFileManager' =>  false,
+		'resizeMode' => 0,
+		'resizeType' => 0,
+		'fillDescAfterUploadImage' => true,
+		'imageTabIndex' => 1,
+		'pasteType' => 1,
+		//'urlType' => 'relative',
+		'noDisableItems' => array(
+      'source',
+      'preview',
+      'fullscreen'
+    )
+	);
+	return $settings;
+}
+
+/**
+ *	文件消息
+ */
+function kindeditor_message($message = array()){
+	require_once drupal_get_path('module' , 'kindeditor') . '/kindeditor/php/JSON.php';
+	header('Content-type: text/html; charset=UTF-8');
+	$json = new Services_JSON();
+	echo $json->encode($message);
+	exit;
+}
+
+/**
+ *	文件错误消息
+ */
+function kindeditor_error_message($message = ''){
+	kindeditor_message(array('error' => 1, 'message' => $message));
+}

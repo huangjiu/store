@@ -1,0 +1,7 @@
+name        = KindEditor
+description = "Enables KindEditor (WYSIWYG HTML editor) for use instead of plain text fields."
+core        = 7.x
+package     = User interface
+version 		= "7.x-0.1"
+
+dependencies[] = transliteration
