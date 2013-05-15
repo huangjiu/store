@@ -113,13 +113,14 @@ function product_term_page($tid){
 		foreach ($entities as $product ) {
 			$render = array();
 			$pro_image  = $product-> get_field('field_pro_image');
-			$render[] = array(
+			$render['image'] = array(
 				'#theme' => 'image' ,
 				'#path'  =>  $pro_image['uri'] ,
 			);
-			$render[] = array(
+			$render['link'] = array(
 				'#markup' =>  l($product-> title  , 'product/'. $product->nid) ,
 			);
+			$render['url'] = url('product/'. $product->nid); 
 			$product_renders[] = $render;
 		}
 	}

@@ -10,7 +10,10 @@
 			<div class="clear"></div>
 			<ul class="three-line">
 					<?php foreach ($products as $product)  : ?>
-							<li><?php print render($product); ?></li>
+							<li>
+								<a href="<?php  print $product['url']; ?>"><?php print render($product['image']); ?></a>
+								<?php print render($product['link']); ?>
+							</li>
 					<?php endforeach; ?>
 			</ul>
 	</div>
